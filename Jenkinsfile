@@ -13,7 +13,7 @@ pipeline{
         }
         stage("Run Test"){
             steps{
-                sh "docker-compose up bdd"
+                sh "docker-compose up"
             }
         }
     }
