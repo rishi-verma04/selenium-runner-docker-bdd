@@ -1,30 +1,27 @@
-pipeline {
-    // master executor should be set to 0
+pipeline{
     agent any
-    stages {
-        stage('Build Jar') {
-            steps {
-                //bat
-                sh "mvn clean package -DskipTests"
+    stages{
+        stage("Pull Latest Image"){
+            steps{
+                sh "docker pull rishiyudi04/selenium-docker-bdd"
             }
         }
-        stage('Build Image') {
-            steps {
-                //bat
-                sh "docker build -t=rishiyudi04/selenium-docker-bdd:${BUILD_NUMBER} ."
+        stage("Start Grid"){
+            steps{
+                sh "docker-compose up -d hub chrome firefox"
             }
         }
-        stage('Push Image') {
-            steps {
-			    withCredentials([usernamePassword(credentialsId: 'dockerhub', passwordVariable: 'pass', usernameVariable: 'user')]) {
-                    //sh
-			        sh "docker login --username=${user} --password=${pass}"
-			      //  sh "docker push rishiyudi04/selenium-docker:${BUILD_NUMBER}"
-			        sh "docker push rishiyudi04/selenium-docker:latest"
-
-
-			    }
+        stage("Run Test"){
+            steps{
+                sh "docker-compose up "
             }
+        }
+    }
+    post{
+        always{
+            archiveArtifacts artifacts: 'output/**'
+            sh "docker-compose down"
+            sh "sudo rm -rf output/"
         }
     }
 }
